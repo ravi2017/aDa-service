@@ -1,0 +1,13 @@
+apply plugin: 'idea'
+
+apply from: file("gradle/dropwizard.gradle")
+
+apply from: file("gradle/conventions.gradle")
+
+apply from: file("gradle/repositories.gradle")
+
+apply from: file("gradle/sonar.gradle")
+
+apply from: file("gradle/coverage.gradle")
+
+apply from: file("gradle/release.gradle")

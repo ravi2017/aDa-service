@@ -1,0 +1,50 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 60000
+  adminConnectors:
+    - type: http
+      port: 60001
+  adminMinThreads: 8
+  adminMaxThreads: 1024
+  requestLog:
+    appenders:
+      - type: file
+        threshold: ALL
+        timeZone: IST
+        logFormat: null
+        currentLogFilename: ./logs/requests.log
+        archive: true
+        archivedLogFilenamePattern: ./logs/requests-%d.log.gz
+        archivedFileCount: 5
+
+adaDbConfiguration:
+  driverClass: com.mysql.jdbc.Driver
+  user: root
+  password: shikharravi1
+  url: jdbc:mysql://localhost/aDa
+  properties:
+    charSet: UTF-8
+  maxWaitForConnection: 1s
+  validationQuery: "/* MyService Health Check */ SELECT 1"
+  minSize: 8
+  maxSize: 32
+  checkConnectionWhileIdle: false
+
+
+logging:
+  level: INFO
+  appenders:
+    - type: file
+      threshold: ALL
+      timeZone: IST
+      logFormat: "%-5p [%d{ISO8601}] [%X{reqId} %X{txnId}] %replace(%c: %m){'\n', '\n '}%n%replace(%ex){'(?m)^(.)',' $1'}%nopex"
+      currentLogFilename: ./logs/aDa-service.log
+      archive: true
+      archivedLogFilenamePattern: ./logs/aDa-service%d.log.gz
+      archivedFileCount: 5
+    - type: console
+      threshold: ALL
+      timeZone: IST
+      target: stdout
+

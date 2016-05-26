@@ -1,0 +1,19 @@
+repositories {
+    mavenCentral()
+    maven { url "http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases" }
+    maven { url "http://artifactory.nm.flipkart.com:8081/artifactory/libs-snapshots" }
+    maven { url "https://oss.sonatype.org/content/groups/public" }
+    maven { url "http://dl.bintray.com/gesellix/gradle-plugins" }
+    maven { url "https://plugins.gradle.org/m2/" }
+    maven { url "http://repository.apache.org/snapshots" }
+}
+
+dependencies {
+    classpath "fk.sp.framework.dropwizard-debian:dropwizard-debian:0.6.1"
+    classpath "com.github.townsfolk:gradle-release:1.2"
+    classpath "de.gesellix:gradle-debian-plugin:12"
+    classpath "mysql:mysql-connector-java:5.1.28"
+    classpath "com.mysema.querydsl:querydsl-sql-codegen:3.5.1"
+    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.1"
+    classpath "org.sonarqube.gradle:gradle-sonarqube-plugin:1.1"
+}

@@ -1,0 +1,48 @@
+task(runService, dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    args 'server', configFile
+}
+
+task(debugService, dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    args 'server', configFile
+    jvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"]
+}
+
+task(dbStatus, dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    args 'db', 'status', configFile
+}
+
+task(dbDryRun, dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    args 'db', 'migrate', '--dry-run', configFile
+}
+
+task(dbMigrate, dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    args 'db', 'migrate', configFile
+}
+
+task(dbRollback, dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    args 'db', 'rollback', '-c1', configFile
+}
+
+task(downloadConfig, dependsOn: 'classes', type: JavaExec) {
+    main = 'fk.sp.config.utilities.DownloadConfigYaml'
+    classpath = sourceSets.main.runtimeClasspath
+    args appName, hostname, configFile
+}
+
+jar {
+    manifest {
+        attributes("Main-Class": mainClassName)
+    }
+}

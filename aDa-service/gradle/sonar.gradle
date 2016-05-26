@@ -1,0 +1,9 @@
+apply plugin: "org.sonarqube"
+sonarqube {
+    properties {
+        property "sonar.host.url", "http://sp-quality-dashboard.stage.nm.flipkart.com:9000"
+        property "sonar.dynamicAnalysis", "reuseReports"
+        property "sonar.java.coveragePlugin", "jacoco"
+        property "sonar.projectName", appName
+    }
+}

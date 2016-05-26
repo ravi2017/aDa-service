@@ -1,0 +1,93 @@
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'war'
+    apply plugin: 'eclipse'
+    apply plugin: "jacoco"
+    group = 'fk.sp.aDa'
+
+}
+
+apply plugin: 'application'
+
+sourceCompatibility = 1.8
+version = '1.0'
+ext.mainClassName = 'fk.sp.aDa.AdaApplication'
+ext.configFile = './src/main/config/ada.yaml'
+ext.hostname='localhost'
+
+buildscript {
+    apply from: file('gradle/buildscript.gradle'), to: buildscript
+}
+
+apply from: file("gradle/common.gradle")
+
+configurations {
+    all*.exclude group: 'log4j', module: 'log4j'
+    all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    all*.exclude group: 'org.slf4j', module: 'slf4j-simple'
+    all*.exclude group: 'com.yammer.dropwizard', module: 'dropwizard-core'
+    all*.exclude group: 'com.yammer.dropwizard', module: 'dropwizard-jdbi'
+    all*.exclude group: 'com.yammer.dropwizard', module: 'dropwizard-metrics-graphite'
+    all*.exclude group: 'com.yammer.dropwizard', module: 'dropwizard-testing'
+    all*.exclude group: 'com.yammer.metrics', module: 'metrics-core'
+    all*.exclude group: 'com.yammer.metrics', module: 'metrics-graphite'
+    all*.exclude group: 'com.yammer.metrics', module: 'metrics-annotation'
+    all*.exclude group: 'com.yammer.metrics', module: 'metrics-jvm'
+
+    all*.exclude group: 'com.codehale.metrics', module: 'metrics-jvm'
+    all*.exclude group: 'com.codehale.metrics', module: 'metrics-core'
+    all*.exclude group: 'com.codehale.metrics', module: 'metrics-annotation'
+    all*.exclude group: 'com.codehale.metrics', module: 'metrics-graphite'
+}
+
+dependencies {
+
+    compile 'io.dropwizard:dropwizard-core:' + dropwizardVersion,
+            'io.dropwizard:dropwizard-metrics-graphite:' + dropwizardVersion,
+
+            'io.dropwizard.metrics:metrics-core:'+dropwizardMetric,
+            'io.dropwizard.metrics:metrics-jvm:'+dropwizardMetric,
+            'io.dropwizard.metrics:metrics-annotation:' + dropwizardMetric,
+            'io.dropwizard:dropwizard-validation:0.7.1',
+            'com.palominolabs.metrics:metrics-guice:' + dropwizardMetric,
+            'com.hubspot.dropwizard:dropwizard-guice:0.7.+'
+
+    compile 'org.projectlombok:lombok:' + lombokVersion
+
+    compile 'fk.sp.common:common-extensions:'+ fkCommonsVersion,
+            'fk.sp.common:spring-jpa:' + fkCommonsVersion
+
+    compile "javax.ws.rs:jsr311-api:1.1.1"
+
+    compile 'fk.sp.framework:config-dropwizard:0.1.4',
+            'fk.sp.mptreasury.mpasl.apladapters:common:0.1.+',
+            compile('flipkart.retail.libraries:dropwizard-admin:5.0.+') {
+                exclude group: 'org.jadira.usertype', module: 'usertype.core'
+            }
+
+    compile 'com.google.inject.extensions:guice-multibindings:' + guiceVersion,
+            'com.google.inject:guice:' + guiceVersion,
+            'com.google.inject.extensions:guice-persist:'+ guiceVersion
+
+    compile 'mysql:mysql-connector-java:5.1.35',
+            'org.hibernate:hibernate-entitymanager:4.3.5.Final'
+
+    testCompile "junit:junit:4.12"
+    testCompile "javax.ws.rs:javax.ws.rs-api:2.+"
+    testCompile 'io.dropwizard:dropwizard-testing:' + dropwizardVersion
+}
+
+apply plugin: 'dropwizard-debian'
+
+dropwizardDebian {
+    userName = "fk-mp-accounting"
+    adminPort = 33401
+    jmxPort = 33402
+    jreVersion = 8
+    applicationName = "fk-sp-aDa-service"
+    parentProject = ""
+    javaOpts = "-Xms1024m -Xmx1024m -Xloggc:/var/log/flipkart/fk-sp-aDa-service/gc.log"
+    isMultiModuleProject = false
+    enableLogAggregation = true
+    enableConfigService = true
+}
