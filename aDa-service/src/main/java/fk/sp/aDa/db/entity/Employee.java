@@ -7,10 +7,7 @@ package fk.sp.aDa.db.entity;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 
-import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import io.dropwizard.jackson.JsonSnakeCase;
@@ -23,10 +20,14 @@ import lombok.Setter;
 @Table (name = "clients")
 @NamedQueries({
         @NamedQuery(name = "getAllEmployees",
-        query = "Select e from  Employee e")
+                query = "Select e from  Employee e"),
+        @NamedQuery(name="getAllEmployees.count",
+                query = "SELECT count(l) as count from Employee l")
 })
 
-public class Employee {
+public class Employee
+{
+
     @NotEmpty
     private String name;
 
@@ -36,6 +37,7 @@ public class Employee {
     @NotEmpty
     private String description;
 
+    @Id
     @NotEmpty
     private long id;
 }

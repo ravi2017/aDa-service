@@ -8,14 +8,9 @@ import com.sun.jersey.api.container.filter.LoggingFilter;
 
 import fk.sp.aDa.configuration.AdaConfiguration;
 import fk.sp.aDa.module.AdaModule;
-import fk.sp.aDa.module.MetricsModule;
-import fk.sp.aDa.resource.EmployeeResource;
-import fk.sp.common.extensions.dropwizard.hystrix.HystrixRequestContextModule;
-import fk.sp.common.extensions.dropwizard.jersey.JerseyClientModule;
-import fk.sp.common.extensions.dropwizard.jersey.JerseyOutgoingRequestModule;
+
 import fk.sp.common.extensions.guice.jpa.spring.JpaWithSpringModule;
-import flipkart.retail.server.admin.bundle.RotationManagementBundle;
-import flipkart.retail.server.admin.config.RotationManagementConfig;
+
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.migrations.MigrationsBundle;
@@ -50,7 +45,7 @@ public class AdaApplication extends Application<AdaConfiguration> {
                 //.addModule(new JerseyClientModule())
                 //.addModule(new HystrixRequestContextModule())
                 //.addModule(new JerseyOutgoingRequestModule())
-                .addModule(new JpaWithSpringModule(Sets.newHashSet("fk.sp.aDa.db.entity"),
+                .addModule(new JpaWithSpringModule(Sets.newHashSet("fk.sp.aDa.db"),
                         new Properties()))
                 .enableAutoConfig("fk.sp.aDa.resource")
                 .build(Stage.DEVELOPMENT);

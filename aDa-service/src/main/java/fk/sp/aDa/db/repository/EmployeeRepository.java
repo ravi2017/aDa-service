@@ -15,6 +15,9 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+
+import fk.sp.common.extensions.jpa.Page;
+import fk.sp.common.extensions.jpa.PageRequest;
 import fk.sp.common.extensions.jpa.SimpleJpaGenericRepository;
 import fk.sp.aDa.db.entity.Employee;
 
@@ -27,8 +30,15 @@ public class EmployeeRepository extends SimpleJpaGenericRepository<Employee, Lon
 
     @Timed
     public List<Employee> getAllEmployeesDetails() {
-        Query query = getEntityManager().createNamedQuery("getAllEmployees");
-        return query.getResultList();
+        //Query query = getEntityManager().createNamedQuery("getAllEmployees");
+        //return query.getResultList();
+        Map<String, Object> queryParam = new HashMap<>();
+        PageRequest pageRequest = PageRequest.builder().pageNumber(0)
+                .pageSize(10)
+                .build();
+        Page<Employee> offerAssociationPage = findAllByNamedQuery("getAllEmployees", queryParam, pageRequest);
+        return offerAssociationPage.getContent();
+
     }
 
 }

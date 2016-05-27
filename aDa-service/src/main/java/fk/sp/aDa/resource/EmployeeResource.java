@@ -2,6 +2,7 @@ package fk.sp.aDa.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import com.hazelcast.instance.OutOfMemoryErrorDispatcher;
 import fk.sp.aDa.configuration.AdaConfiguration;
 import fk.sp.aDa.db.entity.Employee;
@@ -36,11 +37,11 @@ public class EmployeeResource {
     }
 
     @GET
-    @Path("hello")
+    @Path("/hello")
     @Produces(MediaType.APPLICATION_JSON)
-    @UnitOfWork
-    public String employeeList() {
-
+    @Transactional
+    public List<Employee> employeeList() {
+        //return "Hello";
         return employeeRepository.getAllEmployeesDetails();
     }
 

@@ -29,8 +29,10 @@ adaDbConfiguration:
   validationQuery: "/* MyService Health Check */ SELECT 1"
   minSize: 8
   maxSize: 32
-  checkConnectionWhileIdle: false
+  checkConnectionWhileIdle: true
 
+rotationManagementConfig:
+  persistantFilePath: /var/run/fk-sp-settlements-tds-management/persistant_state.txt
 
 logging:
   level: INFO

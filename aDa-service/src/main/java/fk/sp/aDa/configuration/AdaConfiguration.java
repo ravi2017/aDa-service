@@ -6,8 +6,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import flipkart.retail.server.admin.config.RotationManagementConfig;
 import io.dropwizard.Configuration;
+import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.jackson.JsonSnakeCase;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,8 +25,9 @@ public class AdaConfiguration extends Configuration {
         return adaDbConfiguration;
     }
 
-    /*@Valid
+    @Valid
     @NotNull
-    private RotationManagementConfig rotationManagementConfig = new RotationManagementConfig();*/
+    private RotationManagementConfig rotationManagementConfig = new RotationManagementConfig();
+
 
 }

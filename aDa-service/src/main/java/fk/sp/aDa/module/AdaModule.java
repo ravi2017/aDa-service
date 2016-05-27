@@ -33,6 +33,20 @@ public class AdaModule extends AbstractModule {
         bind(EmployeeResource.class);
     }
 
+
+    /**
+     * Gets the instance of RotationManagementConfig.
+     *
+     //@param tdsConfigurationProvider Provider of TDS configuration instance.
+     * @return Singleton instance of RotationManagementConfig.
+     */
+    @Provides
+    @Singleton
+    public RotationManagementConfig providesRotationManagementConfig(
+            Provider<AdaConfiguration> adaConfigurationProvider) {
+        return adaConfigurationProvider.get().getRotationManagementConfig();
+    }
+
     /*
      * Gets the instance of HasDataSourceFactory.
      *
@@ -52,7 +66,8 @@ public class AdaModule extends AbstractModule {
      * @param environmentProvider Provider of TDS configuration instance.
      * @return Singleton instance of ObjectMapper.
      */
-    /*@Provides
+    /*
+    @Provides
     @Singleton
     public ObjectMapper providesObjectMapper(Provider<Environment> environmentProvider) {
         ObjectMapper objectMapper = environmentProvider.get().getObjectMapper();
@@ -72,18 +87,19 @@ public class AdaModule extends AbstractModule {
         objectMapper.setTimeZone(TimeZone.getTimeZone("IST"));
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"));
         return objectMapper;
-    }*/
-
+    }
+    */
 
     /*
      * Gets the instance of JerseyClientConfiguration.
      *
      * @param tdsConfigurationProvider Provider of TDS configuration instance.
      * @return Singleton instance of JerseyClientConfiguration.
-
+     *
     @Provides
     @Singleton
     JerseyClientConfiguration getJerseyClientConfiguration(Provider<AdaConfiguration> adaConfigurationProvider) {
         return adaConfigurationProvider.get().getClientConfiguration();
-    }*/
+    }
+    */
 }
