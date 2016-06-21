@@ -17,10 +17,15 @@ import fk.sp.aDa.configuration.AdaConfiguration;
 import fk.sp.aDa.resource.EmployeeResource;
 import flipkart.retail.server.admin.config.RotationManagementConfig;
 import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Environment;
 import org.joda.time.DateTime;
+import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -66,7 +71,7 @@ public class AdaModule extends AbstractModule {
      * @param environmentProvider Provider of TDS configuration instance.
      * @return Singleton instance of ObjectMapper.
      */
-    /*
+
     @Provides
     @Singleton
     public ObjectMapper providesObjectMapper(Provider<Environment> environmentProvider) {
@@ -88,7 +93,17 @@ public class AdaModule extends AbstractModule {
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"));
         return objectMapper;
     }
-    */
+
+    @Provides
+    @Singleton
+    public Handle providesJDBIHandle(Provider<AdaConfiguration> adaConfigurationProvider, Provider<Environment> environmentProvider) throws ClassNotFoundException {
+
+        final DBIFactory factory = new DBIFactory();
+        final DBI jdbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory(), "db");
+        Handle handle = jdbi.open();
+        return handle;
+    }
+
 
     /*
      * Gets the instance of JerseyClientConfiguration.

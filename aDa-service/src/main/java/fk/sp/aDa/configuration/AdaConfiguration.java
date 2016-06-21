@@ -11,6 +11,9 @@ import io.dropwizard.db.DataSourceFactory;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 
@@ -18,10 +21,11 @@ public class AdaConfiguration extends Configuration {
     /** Database configuration. */
     @Valid
     @NotNull
-    private DataSourceFactory adaDbConfiguration = new DataSourceFactory();
+    private List<DataSourceFactory> adaDbConfiguration = new ArrayList<DataSourceFactory>();
+
 
     @JsonProperty("database")
-    public DataSourceFactory getDataSourceFactory() {
+    public List<DataSourceFactory> getDataSourceFactory() {
         return adaDbConfiguration;
     }
 
