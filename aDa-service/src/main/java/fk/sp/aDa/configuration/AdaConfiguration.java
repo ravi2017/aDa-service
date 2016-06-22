@@ -12,7 +12,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -21,11 +23,11 @@ public class AdaConfiguration extends Configuration {
     /** Database configuration. */
     @Valid
     @NotNull
-    private List<DataSourceFactory> adaDbConfiguration = new ArrayList<DataSourceFactory>();
+    private Map<String,DataSourceFactory> adaDbConfiguration = new HashMap<String,DataSourceFactory>();
 
 
     @JsonProperty("database")
-    public List<DataSourceFactory> getDataSourceFactory() {
+    public Map<String,DataSourceFactory> getDataSourceFactory() {
         return adaDbConfiguration;
     }
 

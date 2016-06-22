@@ -24,6 +24,7 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -58,12 +59,12 @@ public class AdaModule extends AbstractModule {
      * @param tdsConfigurationProvider Provider of TDS configuration instance.
      * @return Instance of HasDataSourceFactory.
      */
-    @Provides
-    public HasDataSourceFactory providesDataSource(final Provider<AdaConfiguration> adaConfigurationProvider) {
+    /*@Provides
+    public HasDataSourceFactory providesDataSource(final Provider<AdaConfiguration> adaConfigurationProvider, int i) {
         return () -> {
-            return adaConfigurationProvider.get().getAdaDbConfiguration();
+            return adaConfigurationProvider.get().getAdaDbConfiguration().get(i);
         };
-    }
+    }*/
 
     /**
      * Gets the instance of ObjectMapper.
@@ -96,12 +97,19 @@ public class AdaModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public Handle providesJDBIHandle(Provider<AdaConfiguration> adaConfigurationProvider, Provider<Environment> environmentProvider) throws ClassNotFoundException {
-
-        final DBIFactory factory = new DBIFactory();
+    public Map<String, Handle> providesJDBIHandle(Provider<AdaConfiguration> adaConfigurationProvider, Provider<Environment> environmentProvider) throws ClassNotFoundException {
+        Map<String,Handle> handleMap = new HashMap<String,Handle>();
+        for(String a: adaConfigurationProvider.get().getDataSourceFactory().keySet()){
+            final DBIFactory factory = new DBIFactory();
+            final DBI jdbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory().get(a), "db");
+            Handle handle = jdbi.open();
+            handleMap.put("aDa",handle);
+        }
+        return handleMap;
+        /*final DBIFactory factory = new DBIFactory();
         final DBI jdbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory(), "db");
         Handle handle = jdbi.open();
-        return handle;
+        return handle;*/
     }
 
 

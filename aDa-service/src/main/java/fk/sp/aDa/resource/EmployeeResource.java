@@ -3,7 +3,6 @@ package fk.sp.aDa.resource;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import fk.sp.aDa.configuration.AdaConfiguration;
-import fk.sp.aDa.db.repository.EmployeeRepository;
 import fk.sp.aDa.request.*;
 import org.omg.CORBA.Any;
 import org.skife.jdbi.v2.Handle;
@@ -23,30 +22,29 @@ import static org.glassfish.hk2.utilities.ServiceLocatorUtilities.bind;
 @Produces(MediaType.APPLICATION_JSON)
 public class EmployeeResource {
 
-    private EmployeeRepository employeeRepository;
+    //private EmployeeRepository employeeRepository;
 
     private AdaConfiguration adaConfiguration;
 
-    private Handle handle;
+    private Map<String,Handle> handle;
 
     @Inject
-    public EmployeeResource(EmployeeRepository employeeRepository,
-                            AdaConfiguration adaConfiguration,
-                            Handle handle) {
+    public EmployeeResource(AdaConfiguration adaConfiguration,
+                            Map<String,Handle> handles) {
         this.adaConfiguration = adaConfiguration;
-        this.employeeRepository = employeeRepository;
-        this.handle = handle;
+        //this.employeeRepository = employeeRepository;
+        this.handle = handles;
     }
 
     @GET
     @Path("/getTables")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public List<String> databaseDetails() throws Exception {
+    public List<String> databaseDetails(DatabaseName databaseName) throws Exception {
         Connection connection = null;
         List<String> tableNames = new ArrayList<String>();
         try {
-            connection = handle.getConnection();
+            connection = handle.get(databaseName.getDatabase()).getConnection();
             // Gets the metadata of the database
             DatabaseMetaData dbmd = connection.getMetaData();
             String[] types = {"TABLE"};
@@ -72,13 +70,13 @@ public class EmployeeResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public List<String> tableDetails(String tableName, int code) throws Exception{
+    public List<String> tableDetails(String tableName, int code, DatabaseName databaseName) throws Exception{
         Connection connection = null;
         Statement statement = null;
         List<String> columnNames = new ArrayList<String>();
         List<String> indexColumnNames = new ArrayList<String>();
         try {
-            connection = handle.getConnection();
+            connection = handle.get(databaseName.getDatabase()).getConnection();
             DatabaseMetaData dbmd = connection.getMetaData();
             statement = connection.createStatement();
             String sql;
@@ -177,7 +175,7 @@ public class EmployeeResource {
         }
 
         System.out.println("select " + columns + " From " + employeeRequest.getSelectedTableName() + whereCondition + groupBy + having + orderBy);
-        Query<Map<String, Object>> name = handle.createQuery("select " + columns + " From " + employeeRequest.getSelectedTableName() + whereCondition + groupBy + having + orderBy);
+        Query<Map<String, Object>> name = handle.get(employeeRequest.getDatabaseName()).createQuery("select " + columns + " From " + employeeRequest.getSelectedTableName() + whereCondition + groupBy + having + orderBy);
         for(String a: employeeRequest.getWhereConditionColumns().keySet()) {
             name.bind(a, employeeRequest.getWhereConditionColumns().get(a));
         }
@@ -194,13 +192,13 @@ public class EmployeeResource {
     public <Any> Any joinDetails(JoinCompleteRequest joinCompleteRequest) throws  Exception{
             List<String> tableNames = new ArrayList<String>();
             List<String> allTableNames = new ArrayList<String>();
-            allTableNames = databaseDetails();
+            allTableNames = databaseDetails(joinCompleteRequest.getDatabaseName());
             tableNames = joinCompleteRequest.getJoinRequestTables().getTableNames();
             Map<String,List<String>> tableColumnInformation = new HashMap<String,List<String>>();
             Map<String,List<String>> tableIndexInformation = new HashMap<String,List<String>>();
             for(int i=0;i<tableNames.size();i++) {
-                tableColumnInformation.put(tableNames.get(i), tableDetails(tableNames.get(i),0));
-                tableIndexInformation.put(tableNames.get(i), tableDetails(tableNames.get(i),1));
+                tableColumnInformation.put(tableNames.get(i), tableDetails(tableNames.get(i),0,joinCompleteRequest.getDatabaseName()));
+                tableIndexInformation.put(tableNames.get(i), tableDetails(tableNames.get(i),1,joinCompleteRequest.getDatabaseName()));
                 //System.out.println(tableInformation.get(tableNames.get(i)).size());
             }
             int queryPossible = 0;
@@ -352,7 +350,7 @@ public class EmployeeResource {
             }
 
             if(validator==true) {
-                Query<Map<String, Object>> temp = handle.createQuery("explain " + sql);
+                Query<Map<String, Object>> temp = handle.get(joinCompleteRequest.getDatabaseName()).createQuery("explain " + sql);
                 for (int i=0;i<joinCompleteRequest.getEmployeeRequest().getWhereConditionList().size();i++) {
                     if(!joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionOperator().equals("BETWEEN"))
                         temp.bind(joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionColumn(), joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionValue());
@@ -369,13 +367,13 @@ public class EmployeeResource {
                     }
                 }
 
-                Query<Map<String, Object>> query = handle.createQuery(sql);
+                Query<Map<String, Object>> query = handle.get(joinCompleteRequest.getDatabaseName()).createQuery(sql);
                 for (int i=0;i<joinCompleteRequest.getEmployeeRequest().getWhereConditionList().size();i++) {
                     if(!joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionOperator().equals("BETWEEN"))
                         query.bind(joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionColumn(), joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionValue());
                 }
 
-                Query<Map<String, Object>> queryTimeCheck = handle.createQuery(sqlTimeCheck);
+                Query<Map<String, Object>> queryTimeCheck = handle.get(joinCompleteRequest.getDatabaseName()).createQuery(sqlTimeCheck);
                 for (int i=0;i<joinCompleteRequest.getEmployeeRequest().getWhereConditionList().size();i++) {
                     if(!joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionOperator().equals("BETWEEN"))
                         queryTimeCheck.bind(joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionColumn(), joinCompleteRequest.getEmployeeRequest().getWhereConditionList().get(i).getWhereConditionValue());

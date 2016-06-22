@@ -36,4 +36,6 @@ public class EmployeeRequest {
 
     private List<OrderBy> orderByList;
 
+    private  DatabaseName databaseName;
+
 }

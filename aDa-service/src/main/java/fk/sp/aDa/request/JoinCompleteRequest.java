@@ -28,4 +28,6 @@ public class JoinCompleteRequest {
 
     private String maxRows;
 
+    private DatabaseName databaseName;
+
 }

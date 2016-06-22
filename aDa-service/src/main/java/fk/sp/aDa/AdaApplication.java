@@ -20,6 +20,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 import java.text.SimpleDateFormat;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -32,12 +33,12 @@ public class AdaApplication extends Application<AdaConfiguration> {
 
     @Override
     public void initialize(Bootstrap<AdaConfiguration> bootstrap) {
-        bootstrap.addBundle(new MigrationsBundle<AdaConfiguration>() {
+        /*bootstrap.addBundle(new MigrationsBundle<AdaConfiguration>() {
             @Override
             public DataSourceFactory getDataSourceFactory(AdaConfiguration adaConfiguration) {
                 return adaConfiguration.getAdaDbConfiguration();
             }
-        });
+        });*/
 
 
 
@@ -49,8 +50,8 @@ public class AdaApplication extends Application<AdaConfiguration> {
                 //.addModule(new JerseyClientModule())
                 //.addModule(new HystrixRequestContextModule())
                 //.addModule(new JerseyOutgoingRequestModule())
-                .addModule(new JpaWithSpringModule(Sets.newHashSet("fk.sp.aDa.db"),
-                        new Properties()))
+                //.addModule(new JpaWithSpringModule(Sets.newHashSet("fk.sp.aDa.db"),
+                //        new Properties()))
                 .enableAutoConfig("fk.sp.aDa.resource")
                 .build(Stage.DEVELOPMENT);
 
