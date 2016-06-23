@@ -18,7 +18,6 @@ import java.util.Map;
 
 @Getter
 @Setter
-
 public class AdaConfiguration extends Configuration {
     /** Database configuration. */
     @Valid
