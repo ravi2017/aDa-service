@@ -31,4 +31,6 @@ public class WhereCondition {
 
     private String betweenLeftValue;
 
+    private String databaseName;
+
 }

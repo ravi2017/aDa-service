@@ -14,20 +14,10 @@ import java.util.List;
 @JsonSnakeCase
 public class JoinCompleteRequest {
 
-    private List<JoinRequest> joinRequests;
+    private List<SelectedColumns> selectedColumnsList;
 
-    private List<JoinRequestCondition> joinRequestConditions;
+    private List<JoinRequestCondition> joinRequestConditionList;
 
     private JoinRequestTables joinRequestTables;
-
-    private EmployeeRequest employeeRequest;
-
-    private String pageNumber;
-
-    private String pageSize;
-
-    private String maxRows;
-
-    private DatabaseName databaseName;
 
 }

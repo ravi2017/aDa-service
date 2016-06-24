@@ -11,7 +11,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class JoinRequest {
+public class SelectedColumns {
 
     private List<String> selectedColumns;
 

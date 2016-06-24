@@ -10,13 +10,11 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import fk.sp.common.extensions.dropwizard.db.HasDataSourceFactory;
 import fk.sp.mptreasury.mpasl.apl.common.jackson.JodaDateTimeDeserializer;
 import fk.sp.mptreasury.mpasl.apl.common.jackson.JodaDateTimeSerializer;
 import fk.sp.aDa.configuration.AdaConfiguration;
-import fk.sp.aDa.resource.EmployeeResource;
+import fk.sp.aDa.resource.ApplicationResource;
 import flipkart.retail.server.admin.config.RotationManagementConfig;
-import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Environment;
 import org.joda.time.DateTime;
@@ -25,7 +23,6 @@ import org.skife.jdbi.v2.Handle;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -36,7 +33,7 @@ public class AdaModule extends AbstractModule {
 
     @Override
     public void configure() {
-        bind(EmployeeResource.class);
+        bind(ApplicationResource.class);
     }
 
 
@@ -103,7 +100,9 @@ public class AdaModule extends AbstractModule {
             final DBIFactory factory = new DBIFactory();
             final DBI jdbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory().get(a), "db");
             Handle handle = jdbi.open();
-            handleMap.put("aDa",handle);
+            handleMap.put(a,handle);
+            System.out.println(a);
+            System.out.println(handleMap.get(a));
         }
         return handleMap;
         /*final DBIFactory factory = new DBIFactory();

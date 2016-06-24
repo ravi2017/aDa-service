@@ -19,7 +19,7 @@ server:
         archivedFileCount: 5
 
 adaDbConfiguration:
-    ada:
+    aDa:
       driverClass: com.mysql.jdbc.Driver
       user: root
       password: shikharravi1
@@ -31,6 +31,18 @@ adaDbConfiguration:
       minSize: 8
       maxSize: 32
       checkConnectionWhileIdle: true
+    aDa-temp:
+          driverClass: com.mysql.jdbc.Driver
+          user: root
+          password: shikharravi1
+          url: jdbc:mysql://localhost/aDa-temp
+          properties:
+             charSet: UTF-8
+          maxWaitForConnection: 1s
+          validationQuery: "/* MyService Health Check */ SELECT 1"
+          minSize: 8
+          maxSize: 32
+          checkConnectionWhileIdle: true
 
 
 
