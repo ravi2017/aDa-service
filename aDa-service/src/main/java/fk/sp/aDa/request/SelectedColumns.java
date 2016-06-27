@@ -17,4 +17,6 @@ public class SelectedColumns {
 
     private String selectedTables;
 
+    private List<String> aggregateFunction;
+
 }

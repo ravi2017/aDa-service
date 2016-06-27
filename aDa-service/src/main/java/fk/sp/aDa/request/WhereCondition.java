@@ -33,4 +33,6 @@ public class WhereCondition {
 
     private String databaseName;
 
+    private List<String> inList;
+
 }

@@ -32,33 +32,29 @@ adaDbConfiguration:
       maxSize: 32
       checkConnectionWhileIdle: true
     aDa-temp:
-          driverClass: com.mysql.jdbc.Driver
-          user: root
-          password: shikharravi1
-          url: jdbc:mysql://localhost/aDa-temp
-          properties:
-             charSet: UTF-8
-          maxWaitForConnection: 1s
-          validationQuery: "/* MyService Health Check */ SELECT 1"
-          minSize: 8
-          maxSize: 32
-          checkConnectionWhileIdle: true
-
-
-
-
-
-   #  - driverClass: com.mysql.jdbc.Driver
-   #   user: root
-   #   password: shikharravi1
-   #   url: jdbc:mysql://localhost/aDa
-   #   properties:
-   #   charSet: UTF-8
-   #   maxWaitForConnection: 1s
-   #   validationQuery: "/* MyService Health Check */ SELECT 1"
-   #   minSize: 8
-   #   maxSize: 32
-   #   checkConnectionWhileIdle: true
+      driverClass: com.mysql.jdbc.Driver
+      user: root
+      password: shikharravi1
+      url: jdbc:mysql://localhost/aDa-temp
+      properties:
+         charSet: UTF-8
+      maxWaitForConnection: 1s
+      validationQuery: "/* MyService Health Check */ SELECT 1"
+      minSize: 8
+      maxSize: 32
+      checkConnectionWhileIdle: true
+    loan_application:
+      driverClass: com.mysql.jdbc.Driver
+      user: root
+      password:
+      url: jdbc:mysql://sms-db1.stage.ch.flipkart.com/loan_application
+      properties:
+         charSet: UTF-8
+      maxWaitForConnection: 1s
+      validationQuery: "/* MyService Health Check */ SELECT 1"
+      minSize: 8
+      maxSize: 32
+      checkConnectionWhileIdle: true
 
 rotationManagementConfig:
   persistantFilePath: /var/run/fk-sp-settlements-tds-management/persistant_state.txt

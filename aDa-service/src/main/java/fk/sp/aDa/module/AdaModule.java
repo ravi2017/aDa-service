@@ -94,8 +94,15 @@ public class AdaModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public Map<String, Handle> providesJDBIHandle(Provider<AdaConfiguration> adaConfigurationProvider, Provider<Environment> environmentProvider) throws ClassNotFoundException {
-        Map<String,Handle> handleMap = new HashMap<String,Handle>();
+    public Map<String, DBI> providesJDBIHandle(Provider<AdaConfiguration> adaConfigurationProvider, Provider<Environment> environmentProvider) throws ClassNotFoundException {
+        Map<String,DBI> dbiMap = new HashMap<String,DBI>();
+        for(String a: adaConfigurationProvider.get().getDataSourceFactory().keySet()){
+            final DBIFactory factory = new DBIFactory();
+            final DBI dbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory().get(a), "db");
+            dbiMap.put(a,dbi);
+        }
+        return dbiMap;
+        /*Map<String,Handle> handleMap = new HashMap<String,Handle>();
         for(String a: adaConfigurationProvider.get().getDataSourceFactory().keySet()){
             final DBIFactory factory = new DBIFactory();
             final DBI jdbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory().get(a), "db");
@@ -104,11 +111,8 @@ public class AdaModule extends AbstractModule {
             System.out.println(a);
             System.out.println(handleMap.get(a));
         }
-        return handleMap;
-        /*final DBIFactory factory = new DBIFactory();
-        final DBI jdbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory(), "db");
-        Handle handle = jdbi.open();
-        return handle;*/
+        return handleMap;*/
+
     }
 
 
