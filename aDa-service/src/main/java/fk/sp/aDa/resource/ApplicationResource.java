@@ -9,6 +9,7 @@ import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.sql.*;
 import java.util.*;
 
@@ -37,25 +38,41 @@ public class ApplicationResource {
     }
 
     @GET
+    @Path("/databasesNames")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response databasesName() throws Exception {
+        List<String> databaseNames = new ArrayList<String>();
+        for(String key: dbiMap.keySet()){
+            databaseNames.add(key);
+        }
+        return Response.ok(databaseNames).build();
+    }
+    @GET
     @Path("/getTables")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public List<String> databaseInformation(@QueryParam("database") String databaseName) throws Exception {
+    public Response databaseInformation(@QueryParam("database") String databaseName) throws Exception {
         List<String> tableNames = databaseDetails(databaseName);
-        return tableNames;
+        return Response.ok(tableNames).build();
     }
 
     @GET
     @Path("/describeTableName")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public List<String> tableInformation(@QueryParam("table") String tableName, @QueryParam("code") int code, @QueryParam("database") String databaseName) throws Exception{
+    public Response tableInformation(@QueryParam("table") String tableName, @QueryParam("code") int code, @QueryParam("database") String databaseName) throws Exception{
+        System.out.println(databaseName);
         List<String> columnNames = new ArrayList<String>();
         List<String> indexColumnNames = new ArrayList<String>();
-        if(code==0)
-            return columnNames;
-        else
-            return indexColumnNames;
+        if(code==0) {
+            columnNames = tableDetails(tableName,code,databaseName);
+            return Response.ok(columnNames).build();
+        }
+        else {
+            indexColumnNames = tableDetails(tableName,code,databaseName);
+            return Response.ok(indexColumnNames).build();
+        }
     }
 
     @POST
@@ -63,7 +80,7 @@ public class ApplicationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public <Any> Any joinDetails(ClientRequest clientRequest) throws  Exception{
+    public Response joinDetails(ClientRequest clientRequest) throws  Exception{
         Handle handle = null;
         try {
                 List<String> tableNames = new ArrayList<String>();
@@ -83,14 +100,10 @@ public class ApplicationResource {
                 String sql = "";
 
                 String columns = "";
-                if(clientRequest.getSelectAllColumns()==0) {
-                    columns = selectColumnBuilder(clientRequest, allTableNames, tableColumnInformation, tableIndexInformation);
-                }
-                else {
-                    columns = "*";
-                }
+                columns = selectColumnBuilder(clientRequest, allTableNames, tableColumnInformation, tableIndexInformation);
+
                 if (columns.equals(null))
-                    queryPossible = 1;
+                        queryPossible = 1;
 
                 if(clientRequest.getSelectDistinct()==0)
                     sql = sql + " select " + columns + " From ";
@@ -160,8 +173,7 @@ public class ApplicationResource {
                         }
 
                     }
-                    //Calendar cal = Calendar.getInstance();
-                    //System.out.println(cal.getTime());
+
                     counter = 0;
                     Query<Map<String, Object>> queryTimeCheck = handle.createQuery(sqlTimeCheck);
                     for (int i = 0; i < clientRequest.getWhereConditionList().size(); i++) {
@@ -189,22 +201,22 @@ public class ApplicationResource {
                     queryTimeCheck.list();
                     endTime = System.currentTimeMillis();
                     if ((endTime - startTime) >= 60000) {
-                        return (Any) "Too Much Time Can't Execute";
+                        return Response.ok("Too Much Time Can't Execute").build();
                     } else {
                         if (!clientRequest.getMaxRows().isEmpty()) {
                             List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
                             result = query.setMaxRows(Integer.parseInt(clientRequest.getMaxRows())).list();
-                            return (Any) result;
+                            return Response.ok(result).build();
                         } else {
                             List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
                             result = query.list();
-                            return (Any) result;
+                            return Response.ok(result).build();
                         }
                     }
                 } else {
                     System.out.println("Error!!!");
                     String errorMessage = "error";
-                    return (Any) errorMessage;
+                    return Response.ok(errorMessage).build();
                 }
         }
         finally {
@@ -214,7 +226,7 @@ public class ApplicationResource {
         }
     }
 
-    public String selectColumnBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation, Map<String,List<String>> tableIndexInformation) {
+    public String selectColumnBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation, Map<String,List<String>> tableIndexInformation) throws Exception{
         String columns = "";
         for(int i=0; i< clientRequest.getJoinCompleteRequest().getSelectedColumnsList().size();i++) {
             if (!tableValidator(clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedTables(), allTableNames)) {
@@ -224,20 +236,42 @@ public class ApplicationResource {
                 if (i == 0 && j == 0) {
                     if(!columnValidator(clientRequest,clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedTables(), clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j), tableColumnInformation))
                         queryPossible = 1;
-                    columns = columns + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + "(" +clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedTables() + "." + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j) + ")";
+                    if(clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j).equals("*")){
+                        if((clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j).equals("COUNT"))){
+                            columns = columns + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + "(" + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j) + ")";
+                        }
+                        else if((clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j).equals(""))){
+                            columns = columns + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j);
+                        }
+                        else
+                            queryPossible = 1;
+                    }
+                    else
+                        columns = columns + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + "(" +clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedTables() + "." + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j) + ")";
                 }
                 else {
                     if(!columnValidator(clientRequest,clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedTables(),clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j),tableColumnInformation)) {
                         queryPossible = 1;
                     }
-                    columns = columns + "," + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + "(" + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedTables() + "." + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j) + ")";
+                    if(clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j).equals("*")){
+                        if((clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j).equals("COUNT")) || (clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j).equals(""))){
+                            columns = columns + "," + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + "(" + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j) + ")";
+                        }
+                        else if((clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j).equals(""))){
+                            columns = columns + "," + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j);
+                        }
+                        else
+                            queryPossible = 1;
+                    }
+                    else
+                        columns = columns + "," + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getAggregateFunction().get(j) + "(" + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedTables() + "." + clientRequest.getJoinCompleteRequest().getSelectedColumnsList().get(i).getSelectedColumns().get(j) + ")";
                 }
             }
         }
         return  columns;
     }
 
-    public String joinPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation, Map<String,List<String>> tableIndexInformation, String sql) {
+    public String joinPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation, Map<String,List<String>> tableIndexInformation, String sql) throws Exception{
         for(int i=0; i< clientRequest.getJoinCompleteRequest().getJoinRequestTables().getTableNames().size();i++) {
             if (i == 0) {
                 if (!tableValidator(clientRequest.getJoinCompleteRequest().getJoinRequestTables().getTableNames().get(i), allTableNames)) {
@@ -253,7 +287,7 @@ public class ApplicationResource {
                     if (clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableTwoName().equals(clientRequest.getJoinCompleteRequest().getJoinRequestTables().getTableNames().get(i))) {
                         for (int k = 0; k <= i; k++) {
                             if (clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableOneName().equals(clientRequest.getJoinCompleteRequest().getJoinRequestTables().getTableNames().get(k))) {
-                                if (!tableValidator(clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableOneName(), allTableNames) && tableValidator(clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableTwoName(), allTableNames) && columnValidator(clientRequest,clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableOneName(), clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableOneColumnName(), tableColumnInformation) && columnValidator(clientRequest,clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableTwoName(), clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableTwoColumnName(), tableColumnInformation)) {
+                                if (!(tableValidator(clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableOneName(), allTableNames) && tableValidator(clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableTwoName(), allTableNames) && columnValidatorIndex(clientRequest,clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableOneName(), clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableOneColumnName(), tableColumnInformation) && columnValidatorIndex(clientRequest,clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableTwoName(), clientRequest.getJoinCompleteRequest().getJoinRequestConditionList().get(j).getTableTwoColumnName(), tableColumnInformation))) {
                                     queryPossible = 1;
                                 }
                                 if (k == 0)
@@ -269,12 +303,12 @@ public class ApplicationResource {
         return sql;
     }
 
-    public String wherePartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) {
+    public String wherePartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) throws Exception{
         String whereCondition = "";
         int counter = 0;
         counter = 0;
         for(int i=0;i<clientRequest.getWhereConditionList().size();i++) {
-            if (!(tableValidator(clientRequest.getWhereConditionList().get(i).getTableName(), allTableNames) && columnValidator(clientRequest,clientRequest.getWhereConditionList().get(i).getTableName(), clientRequest.getWhereConditionList().get(i).getWhereConditionColumn(), tableColumnInformation) && isLeftParenthesis(clientRequest.getWhereConditionList().get(i).getLeftParenthesis()) && isRightParenthesis(clientRequest.getWhereConditionList().get(i).getRightParenthesis()))) {
+            if (!(tableValidator(clientRequest.getWhereConditionList().get(i).getTableName(), allTableNames) && columnValidatorIndex(clientRequest,clientRequest.getWhereConditionList().get(i).getTableName(), clientRequest.getWhereConditionList().get(i).getWhereConditionColumn(), tableColumnInformation) && isLeftParenthesis(clientRequest.getWhereConditionList().get(i).getLeftParenthesis()) && isRightParenthesis(clientRequest.getWhereConditionList().get(i).getRightParenthesis()))) {
                 queryPossible = 1;
             }
             if (counter == 0) {
@@ -284,6 +318,9 @@ public class ApplicationResource {
                 else if(clientRequest.getWhereConditionList().get(i).getWhereConditionOperator().equals("IN") || clientRequest.getWhereConditionList().get(i).getWhereConditionOperator().equals("NOT IN") ){
                     whereCondition = whereCondition + " where " + clientRequest.getWhereConditionList().get(i).getLeftParenthesis() + clientRequest.getWhereConditionList().get(i).getTableName() + "." + clientRequest.getWhereConditionList().get(i).getWhereConditionColumn() + " " + clientRequest.getWhereConditionList().get(i).getWhereConditionOperator() + " " + inListBuilder(clientRequest.getWhereConditionList().get(i).getInList()) + clientRequest.getWhereConditionList().get(i).getRightParenthesis();
 
+                }
+                else if(clientRequest.getWhereConditionList().get(i).getWhereConditionOperator().equals("LIKE")){
+                    whereCondition = whereCondition + " where " + clientRequest.getWhereConditionList().get(i).getLeftParenthesis() + clientRequest.getWhereConditionList().get(i).getTableName() + "." + clientRequest.getWhereConditionList().get(i).getWhereConditionColumn() + " " + "LIKE " + "?" + clientRequest.getWhereConditionList().get(i).getRightParenthesis();
                 }
                 else {
                     whereCondition = whereCondition + " where " + clientRequest.getWhereConditionList().get(i).getLeftParenthesis() + clientRequest.getWhereConditionList().get(i).getTableName() + "." + clientRequest.getWhereConditionList().get(i).getWhereConditionColumn() + " " + clientRequest.getWhereConditionList().get(i).getWhereConditionOperator() + " ?" +
@@ -297,6 +334,9 @@ public class ApplicationResource {
                 else if(clientRequest.getWhereConditionList().get(i).getWhereConditionOperator().equals("IN") || clientRequest.getWhereConditionList().get(i).getWhereConditionOperator().equals("NOT IN")){
                     whereCondition = whereCondition + " " + clientRequest.getWhereConditionList().get(i).getConnectorOperator() + " " + clientRequest.getWhereConditionList().get(i).getLeftParenthesis() + clientRequest.getWhereConditionList().get(i).getTableName() + "." + clientRequest.getWhereConditionList().get(i).getWhereConditionColumn() + " " + clientRequest.getWhereConditionList().get(i).getWhereConditionOperator() + " " + inListBuilder(clientRequest.getWhereConditionList().get(i).getInList()) + clientRequest.getWhereConditionList().get(i).getRightParenthesis();
                 }
+                else if(clientRequest.getWhereConditionList().get(i).getWhereConditionOperator().equals("LIKE")) {
+                    whereCondition = whereCondition + " " + clientRequest.getWhereConditionList().get(i).getConnectorOperator() + " " + clientRequest.getWhereConditionList().get(i).getLeftParenthesis() + clientRequest.getWhereConditionList().get(i).getTableName() + "." + clientRequest.getWhereConditionList().get(i).getWhereConditionColumn() + " " + "LIKE " + "?" + clientRequest.getWhereConditionList().get(i).getRightParenthesis();
+                }
                 else {
                     whereCondition = whereCondition + " " + clientRequest.getWhereConditionList().get(i).getConnectorOperator() + " " + clientRequest.getWhereConditionList().get(i).getLeftParenthesis() + " " + clientRequest.getWhereConditionList().get(i).getTableName() + "." + clientRequest.getWhereConditionList().get(i).getWhereConditionColumn() + " " + clientRequest.getWhereConditionList().get(i).getWhereConditionOperator() + " ?" + clientRequest.getWhereConditionList().get(i).getRightParenthesis();
                 }
@@ -306,7 +346,7 @@ public class ApplicationResource {
         return  whereCondition;
     }
 
-    public String groupByPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) {
+    public String groupByPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) throws Exception{
         String groupBy = "";
         if(clientRequest.getGroupByList().size()>0) {
             for(int i=0;i<clientRequest.getGroupByList().size();i++) {
@@ -323,22 +363,39 @@ public class ApplicationResource {
         return  groupBy;
     }
 
-    public String havingPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) {
+    public String havingPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) throws Exception{
         String having = "";
         if(clientRequest.getHavingList().size()>0) {
             for(int i=0;i<clientRequest.getHavingList().size();i++) {
-                if(!(tableValidator(clientRequest.getHavingList().get(i).getTableName(),allTableNames) && columnValidator(clientRequest,clientRequest.getHavingList().get(i).getTableName(),clientRequest.getHavingList().get(i).getColumnName(),tableColumnInformation) && isRightParenthesis(clientRequest.getHavingList().get(i).getRightParenthesis()) && isLeftParenthesis(clientRequest.getHavingList().get(i).getLeftParenthesis()))) {
+                if(!(tableValidator(clientRequest.getHavingList().get(i).getTableName(),allTableNames) && columnValidatorIndex(clientRequest,clientRequest.getHavingList().get(i).getTableName(),clientRequest.getHavingList().get(i).getColumnName(),tableColumnInformation) && isRightParenthesis(clientRequest.getHavingList().get(i).getRightParenthesis()) && isLeftParenthesis(clientRequest.getHavingList().get(i).getLeftParenthesis()))) {
                     queryPossible = 1;
                 }
                 if (i == 0) {
-                    having = having + " Having " + clientRequest.getHavingList().get(i).getLeftParenthesis() + clientRequest.getHavingList().get(i).getAggregateFunction() + "(" + clientRequest.getHavingList().get(i).getTableName() + "." + clientRequest.getHavingList().get(i).getColumnName() + ")" + " ";
+                    if(clientRequest.getHavingList().get(i).getColumnName().equals("*")){
+                        if(clientRequest.getHavingList().get(i).getAggregateFunction().equals("COUNT") || clientRequest.getHavingList().get(i).getAggregateFunction().equals("")){
+                            having = having + " Having " + clientRequest.getHavingList().get(i).getLeftParenthesis() + clientRequest.getHavingList().get(i).getAggregateFunction() + "(" +  clientRequest.getHavingList().get(i).getColumnName() + ")" + " ";
+                        }
+                        else
+                            queryPossible = 1;
+                    }
+                    else
+                        having = having + " Having " + clientRequest.getHavingList().get(i).getLeftParenthesis() + clientRequest.getHavingList().get(i).getAggregateFunction() + "(" + clientRequest.getHavingList().get(i).getTableName() + "." + clientRequest.getHavingList().get(i).getColumnName() + ")" + " ";
                     if (clientRequest.getHavingList().get(i).getOperatorType().equals("BETWEEN")) {
                         having = having + "BETWEEN " + clientRequest.getHavingList().get(i).getBetweenLeftValue() + " AND " + clientRequest.getHavingList().get(i).getBetweenRightValue() + clientRequest.getHavingList().get(i).getRightParenthesis();
-                    } else {
+                    }
+                    else {
                         having = having + clientRequest.getHavingList().get(i).getOperatorType() + clientRequest.getHavingList().get(i).getOperatorValue() + clientRequest.getHavingList().get(i).getRightParenthesis();
                     }
                 } else {
-                    having = having + " " + clientRequest.getHavingList().get(i).getConnectorType() + " " + clientRequest.getHavingList().get(i).getLeftParenthesis() + clientRequest.getHavingList().get(i).getAggregateFunction() + "(" + clientRequest.getHavingList().get(i).getTableName() + "." + clientRequest.getHavingList().get(i).getColumnName() + ")" + " ";
+                    if(clientRequest.getHavingList().get(i).getColumnName().equals("*")){
+                        if(clientRequest.getHavingList().get(i).getAggregateFunction().equals("COUNT") || clientRequest.getHavingList().get(i).getAggregateFunction().equals("")){
+                            having = having + " " + clientRequest.getHavingList().get(i).getConnectorType() + " " + clientRequest.getHavingList().get(i).getLeftParenthesis() + clientRequest.getHavingList().get(i).getAggregateFunction() + "(" + clientRequest.getHavingList().get(i).getColumnName() + ")" + " ";
+                        }
+                        else
+                            queryPossible = 1;
+                    }
+                    else
+                        having = having + " " + clientRequest.getHavingList().get(i).getConnectorType() + " " + clientRequest.getHavingList().get(i).getLeftParenthesis() + clientRequest.getHavingList().get(i).getAggregateFunction() + "(" + clientRequest.getHavingList().get(i).getTableName() + "." + clientRequest.getHavingList().get(i).getColumnName() + ")" + " ";
                     if (clientRequest.getHavingList().get(i).getOperatorType().equals("BETWEEN")) {
                         having = having + "BETWEEN " + clientRequest.getHavingList().get(i).getBetweenLeftValue() + " AND " + clientRequest.getHavingList().get(i).getBetweenRightValue() + clientRequest.getHavingList().get(i).getRightParenthesis();
                     } else {
@@ -350,7 +407,7 @@ public class ApplicationResource {
         return  having;
     }
 
-    public String orderByPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) {
+    public String orderByPartBuilder(ClientRequest clientRequest, List<String> allTableNames, Map<String,List<String>> tableColumnInformation , Map<String,List<String>> tableIndexInformation) throws Exception{
         String orderBy = "";
         if(clientRequest.getOrderByList().size()>0) {
             for(int i=0;i<clientRequest.getOrderByList().size();i++) {
@@ -378,12 +435,36 @@ public class ApplicationResource {
         System.out.println(temp.list().get(0).get("rows"));
     }
 
-    public boolean columnValidator(ClientRequest clientRequest,String tableName, String columnName, Map<String,List<String>> tableColumnInformation) {
+    public boolean columnValidatorIndex(ClientRequest clientRequest,String tableName, String columnName, Map<String,List<String>> tableColumnInformation) throws Exception {
+        Boolean check = (tableColumnInformation.containsKey(tableName) && tableValidator(tableName, clientRequest.getJoinCompleteRequest().getJoinRequestTables().getTableNames()));
+        if (check) {
+            for (int i = 0; i < tableColumnInformation.get(tableName).size(); i++) {
+                if (columnName.equals(tableColumnInformation.get(tableName).get(i))) {
+                    /*List<String> tableIndexInformation = new ArrayList<String>();
+                    tableIndexInformation = tableDetails(tableName,1,clientRequest.getDatabaseName());
+                    for(int j=0;j<tableIndexInformation.size();j++){
+                        if(tableIndexInformation.get(j).equals(columnName)){
+                            return true;
+                        }*/
+                    return true;
+                }
+            }
+            return false;
+        }
+        //  return false;
+        //}
+        else {
+            return false;
+        }
+    }
+
+    public boolean columnValidator(ClientRequest clientRequest,String tableName, String columnName, Map<String,List<String>> tableColumnInformation) throws Exception{
         Boolean check = (tableColumnInformation.containsKey(tableName) && tableValidator(tableName,clientRequest.getJoinCompleteRequest().getJoinRequestTables().getTableNames()));
         if(check) {
             for(int i=0;i<tableColumnInformation.get(tableName).size();i++) {
-                if(columnName.equals(tableColumnInformation.get(tableName).get(i)))
+                if(columnName.equals(tableColumnInformation.get(tableName).get(i))){
                     return true;
+                }
             }
             return false;
         }
@@ -503,6 +584,7 @@ public class ApplicationResource {
                 connection.close();
             }
         }
+        columnNames.add("*");
         if(code==0)
             return columnNames;
         else

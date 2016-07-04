@@ -32,8 +32,6 @@ public class ClientRequest {
 
     private  String databaseName;
 
-    private int selectAllColumns;
-
     private int selectDistinct;
 
 }

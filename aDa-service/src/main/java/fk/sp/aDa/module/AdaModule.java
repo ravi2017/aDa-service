@@ -102,30 +102,5 @@ public class AdaModule extends AbstractModule {
             dbiMap.put(a,dbi);
         }
         return dbiMap;
-        /*Map<String,Handle> handleMap = new HashMap<String,Handle>();
-        for(String a: adaConfigurationProvider.get().getDataSourceFactory().keySet()){
-            final DBIFactory factory = new DBIFactory();
-            final DBI jdbi = factory.build(environmentProvider.get(), adaConfigurationProvider.get().getDataSourceFactory().get(a), "db");
-            Handle handle = jdbi.open();
-            handleMap.put(a,handle);
-            System.out.println(a);
-            System.out.println(handleMap.get(a));
-        }
-        return handleMap;*/
-
     }
-
-
-    /*
-     * Gets the instance of JerseyClientConfiguration.
-     *
-     * @param tdsConfigurationProvider Provider of TDS configuration instance.
-     * @return Singleton instance of JerseyClientConfiguration.
-     *
-    @Provides
-    @Singleton
-    JerseyClientConfiguration getJerseyClientConfiguration(Provider<AdaConfiguration> adaConfigurationProvider) {
-        return adaConfigurationProvider.get().getClientConfiguration();
-    }
-    */
 }
